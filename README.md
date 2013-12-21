@@ -11,4 +11,5 @@ use `go build` to build this repo
 use `go run` to start the server locally
 
 ### Using the Wiki
-access [http://localhost:8080/view/FrontPage](http://localhost:8080/view/FrontPage)
+access [http://localhost:8080/view/FrontPage](http://localhost:8080/view/FrontPage)  
+edit pages [http://localhost:8080/edit/FrontPage](http://localhost:8080/edit/FrontPage)  
