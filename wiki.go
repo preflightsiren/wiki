@@ -5,10 +5,12 @@ import (
   "io/ioutil"
   "net/http"
   "regexp"
+  "os"
+  "strings"
 )
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
-var templates = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html"))
+var templates = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html", "templates/list.html"))
 
 type Page struct {
     Title string
@@ -47,6 +49,22 @@ func makeHandler(fn func (http.ResponseWriter, *http.Request, string)) http.Hand
   }
 }
 
+func getFiles() ([]string, error) {
+  dir, err := os.Open("data")
+  if err != nil {
+    return nil, err
+  }
+  fileInfo, err := dir.Readdir(10)
+  if err != nil {
+    return nil, err
+  }
+  files := make([]string, len(fileInfo))
+  for i, f := range fileInfo {
+    files[i] = strings.Split(f.Name(), ".")[0]
+  }
+  return files, nil
+}
+
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
   p, err := loadPage(title)
   if err != nil {
@@ -75,10 +93,22 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
   http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+  files, err := getFiles()
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+  }
+  err = templates.ExecuteTemplate(w, "list.html", files)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+  }
+}
+
 func main() {
   http.HandleFunc("/view/", makeHandler(viewHandler))
   http.HandleFunc("/edit/", makeHandler(editHandler))
   http.HandleFunc("/save/", makeHandler(saveHandler))
+  http.HandleFunc("/", indexHandler)
   http.ListenAndServe(":8080", nil)
 
 }
