@@ -12,3 +12,8 @@ use `go run wiki.go` to start the server locally
 ### Using the Wiki
 access [http://localhost:8080/view/FrontPage](http://localhost:8080/view/FrontPage)  
 edit pages [http://localhost:8080/edit/FrontPage](http://localhost:8080/edit/FrontPage)  
+
+### Configuration
+Listens on localhost:8080  
+Wiki content is stored in data/  
+HTML templates are stored in templates/
