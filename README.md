@@ -10,6 +10,7 @@ The log contains the individual steps and construction of the wiki concept
 use `go run wiki.go` to start the server locally
 
 ### Using the Wiki
+list top pages [http://localhost:8080/](http://localhost:8080)  
 access [http://localhost:8080/view/FrontPage](http://localhost:8080/view/FrontPage)  
 edit pages [http://localhost:8080/edit/FrontPage](http://localhost:8080/edit/FrontPage)  
 
