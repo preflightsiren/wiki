@@ -11,7 +11,8 @@ import (
 	"strings"
 )
 
-var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+var validPath = regexp.MustCompile("^/(edit|save|view|stylesheets)/([a-zA-Z0-9_]+)$")
+var validStaticFile = regexp.MustCompile("^/stylesheets/([a-zA-Z0-9_]+).css$")
 var templates = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html", "templates/list.html"))
 
 type Page struct {
@@ -124,10 +125,25 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func staticHandler(w http.ResponseWriter, r *http.Request) {
+	m := validStaticFile.FindStringSubmatch(r.URL.Path)
+	if m == nil {
+		http.NotFound(w, r)
+		return
+	}
+	body, err := ioutil.ReadFile("./" + r.URL.Path)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintf(w, "%s", body)
+}
+
 func main() {
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.HandleFunc("/stylesheets/", staticHandler)
 	http.HandleFunc("/", indexHandler)
 	http.ListenAndServe(":8080", nil)
 
