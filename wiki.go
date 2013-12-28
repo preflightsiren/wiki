@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	md "github.com/russross/blackfriday"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -18,17 +20,32 @@ type Page struct {
 }
 
 func (p *Page) save() error {
-	filename := "data/" + p.Title + ".txt"
+	filename := "data/" + p.Title + ".md"
 	return ioutil.WriteFile(filename, p.Body, 0600)
 }
 
 func loadPage(title string) (*Page, error) {
-	filename := "data/" + title + ".txt"
+	filename := "data/" + title + ".md"
+
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 	return &Page{Title: title, Body: body}, nil
+}
+
+func renderMarkdown(title string, input []byte) []byte {
+	var renderer md.Renderer
+	htmlFlags := 0
+	extensions := 0
+	css := "../stylesheets/styles.css"
+	htmlFlags |= md.HTML_USE_XHTML
+	htmlFlags |= md.HTML_USE_SMARTYPANTS
+	htmlFlags |= md.HTML_SMARTYPANTS_FRACTIONS
+	htmlFlags |= md.HTML_COMPLETE_PAGE
+	renderer = md.HtmlRenderer(htmlFlags, title, css)
+	return md.Markdown(input, renderer, extensions)
+
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
@@ -71,7 +88,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
+	p.Body = renderMarkdown(title, p.Body)
 	renderTemplate(w, "view", p)
+	fmt.Fprintf(w, "%s", p.Body)
+
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request, title string) {
